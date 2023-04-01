@@ -13,3 +13,4 @@
 <p>________°(1º)____________°(3º)_______</p>
 <br>
 <p>Em seguida, clique dentro do triângulo formado pelos três pontos e clique mais uma vez para iniciar a montagem do triângulo de sierpinski</p>
+<p>Após a montagem, caso queira jogar novamente, basta recarregar a página</p>
