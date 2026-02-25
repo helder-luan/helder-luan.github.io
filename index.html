@@ -11,16 +11,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.08), transparent 40%),
-                  radial-gradient(circle at 80% 70%, rgba(255,255,255,0.06), transparent 40%),
-                  #000;
+      background: #000;
+      overflow: hidden;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       color: #f5f5f5;
     }
 
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
     .card {
+      position: relative;
+      z-index: 1;
       background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       border-radius: 16px;
       padding: 30px;
       max-width: 700px;
@@ -65,19 +73,28 @@
       margin-left: 10px;
     }
 
-    .primary:hover {
-      opacity: 0.85;
-    }
-
-    .secondary:hover {
-      background: rgba(255,255,255,0.1);
-    }
+    .primary:hover { opacity: 0.85; }
+    .secondary:hover { background: rgba(255,255,255,0.1); }
 
     #message {
       white-space: pre-line;
       margin-top: 25px;
       line-height: 1.6;
       min-height: 200px;
+      font-family: "Courier New", monospace;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      background: #fff;
+      margin-left: 4px;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0; }
     }
 
     .actions {
@@ -87,10 +104,12 @@
   </style>
 </head>
 <body>
+  <canvas id="particles"></canvas>
+
   <div class="card">
-    <h1>Digite seu nome 🤍</h1>
+    <h1>Digite seu nome 💛</h1>
     <input type="text" id="nameInput" placeholder="Seu nome aqui" />
-    <button class="primary" onclick="start()">Ver mensagem</button>
+    <button class="primary" id="startBtn" onclick="start()">Ver mensagem</button>
 
     <div id="message"></div>
 
@@ -101,42 +120,32 @@
   </div>
 
   <script>
-    const allowedName = "joyce"; // <-- coloque o nome exato aqui
+    const allowedName = "joyce";
 
-    const fullMessage = `Eu ainda me pergunto como aquela garota tão diferente que conheci lá no Miranda — gótica, do “submundo”, da turma do fundão (kkkk) — mudou tanto. E preciso ser sincero: que bom que mudou.
-
-E, pra falar a verdade, acho que a melhor parte não é o quanto você mudou… e sim o quanto você cresceu sem deixar de ser você: corajosa e intensa. Só ganhou direção.
-
-Foi muito divertido ter feito parte daquela fase. E fico feliz em ainda acompanhar, mesmo de longe, tudo o que você construiu: um novo país, novas amizades, novos caminhos, novas conquistas.
-
-Tenho muito orgulho de você e de quem você se tornou.
-
-Que essa formatura seja só mais um capítulo incrível do que ainda está por vir 🤍
-
-2 Coríntios 5:17`;
+    const fullMessage = `Oii!! 😁\n\n Sabe... Eu ainda me pergunto como aquela garota tão diferente que conheci lá no Miranda — gótica, do “submundo”, da turma do fundão (kkkk) — mudou tanto. E preciso ser sincero: que bom que mudou.\n\nE, pra falar a verdade, acho que a melhor parte não é o quanto você mudou… e sim o quanto você cresceu sem deixar de ser você: corajosa e intensa. Só ganhou direção.\n\nFoi muito divertido ter feito parte daquela fase. E fico feliz em ainda acompanhar, mesmo de longe, tudo o que você construiu: um novo país, novas amizades, novos caminhos, novas conquistas.\n\nTenho muito orgulho de você e de quem você se tornou.\n\nQue essa formatura seja só mais um capítulo incrível do que ainda está por vir 🤍\n\n\"Assim que, se alguém está em Cristo, nova criatura é: as coisas velhas já passaram; eis que tudo se fez novo.\" — 2 Coríntios 5:17`;
 
     let index = 0;
     let typingInterval;
     let isTyping = false;
 
+    const messageElement = document.getElementById("message");
+
     function start() {
-      const inputName = document.querySelector("#nameInput").value.trim();
+      const inputName = document.getElementById("nameInput").value.trim();
       if (inputName.toLowerCase() !== allowedName.toLowerCase()) {
         alert("Hmm... acho que essa mensagem não é pra você 😅");
         return;
       }
 
       document.querySelector("h1").style.display = "none";
-      document.querySelector("#nameInput").style.display = "none";
-      document.querySelector(".primary").style.display = "none";
-
-      document.querySelector("#actions").style.display = "block";
+      document.getElementById("nameInput").style.display = "none";
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("actions").style.display = "block";
 
       typeMessage();
     }
 
     function typeMessage() {
-      const messageElement = document.querySelector("#message");
       isTyping = true;
       typingInterval = setInterval(() => {
         messageElement.textContent += fullMessage.charAt(index);
@@ -151,7 +160,7 @@ Que essa formatura seja só mais um capítulo incrível do que ainda está por v
     function skipAnimation() {
       if (isTyping) {
         clearInterval(typingInterval);
-        document.querySelector("#message").textContent = fullMessage;
+        messageElement.textContent = fullMessage;
         isTyping = false;
       }
     }
@@ -160,6 +169,58 @@ Que essa formatura seja só mais um capítulo incrível do que ainda está por v
       navigator.clipboard.writeText(fullMessage);
       alert("Mensagem copiada 💛");
     }
+
+    // Partículas
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particlesArray = [];
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = Math.random() * 0.5 - 0.25;
+        this.speedY = Math.random() * 0.5 - 0.25;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+      }
+      draw() {
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      for (let i = 0; i < 100; i++) {
+        particlesArray.push(new Particle());
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particlesArray.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+
+    initParticles();
+    animateParticles();
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
   </script>
 </body>
 </html>
